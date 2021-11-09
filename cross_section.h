@@ -4,6 +4,8 @@
 #include "utility.h"
 #include "parse.h"
 
+
+typedef std::pair<std::string,class Reaction*> pair_name_react;
 class Reaction
 {
 public:
@@ -15,10 +17,12 @@ public:
                  threshold(0)
     { }
 
-    Reaction (std::string file, int reaction_type_number, std::string rname, int i) 
+    Reaction (std::string file, int reaction_type_number, std::vector<std::string> type,
+                std::string rname, int i) 
     : infile(file),
     info_size(reaction_type_number),
     name(rname),
+    types(type),
     reaction_id(i),
     arr_length(3),
     threshold(0)
@@ -77,30 +81,32 @@ public:
     }
 
 
-    const int size() { return arr_length; }
-    const int isize() { return info_size; }
-    const std::vector<Real> th() { return threshold; }
-    const std::string spec_name() { return name; }
+    const int size() const { return arr_length; }
+    const int isize() const { return info_size; }
+    const std::vector<Real> th() const { return threshold; }
+    const std::string spec_name() const { return name; }
     const int r_index() { return reaction_id; }
     const Real de() { return de_; }
     const std::vector<Real> csection(int i) { return info_arr[i]; }
+    const std::vector<std::string> get_types() { return types; }
     
 private:
     std::string infile;
     const int info_size;
     const std::string name;
+    std::vector<std::string> types;
     int reaction_id, arr_length;
     Real de_;
     std::vector<Real> threshold;
     std::vector<Real> info;
     std::vector<std::vector<Real>> info_arr; // info_arr of every energy
     std::vector<Real> energy;                // energy_arr of total energy bin
-
+    
     void resize_threshold() 
     { 
         if(threshold.size() < static_cast<size_t>(info_size - 1)) {
             std::size_t di = info_size - 1 - threshold.size();
-            while(di > 0) 
+            while(di-- > 0) 
                 threshold.emplace_back(0);  
         }
     }
@@ -112,7 +118,7 @@ class CrossSection
     friend class Reaction;
 
 public:
-    CrossSection(const std::string &file)
+    CrossSection(const std::string &file="csection.in")
     : infile(file) {
         read_input_cross_section();
         react_arr.reserve(num_species());
@@ -133,7 +139,7 @@ public:
     const std::vector<std::string>& name_species() { return name; }
     const std::vector<std::string>& files() { return reaction_file; }
     const std::vector<int>& num_react() const { return reaction_type_number; }
-    const int num_species() { return reaction_species_number; }
+    int num_species() const { return reaction_species_number; }
 
     /*---------------------begin private method-----------------------*/
 
@@ -143,18 +149,23 @@ private:
     std::vector<std::string> name;
     std::vector<std::string> reaction_file;
     std::vector<int> reaction_type_number;
+    std::vector<std::string> reaction_types; 
 
     CrossSection();
 
     void get_reaction() 
     { 
         std::string file, spec;
+        std::vector<std::string> types;
         int type_num;
         for(int i = 0; i < reaction_species_number; ++i) {
             file = reaction_file[i];
             type_num = reaction_type_number[i];
             spec = name[i];
-            react_arr.emplace_back(new Reaction(file, type_num, spec, i));
+            std::copy(reaction_types.begin(), reaction_types.begin()+type_num, back_inserter(types));
+            react_arr.emplace_back(new Reaction(file, type_num, types, spec, i));
+            reaction_types.erase(reaction_types.begin(), reaction_types.begin()+type_num);
+            types.clear();
         }
     }
 
@@ -174,18 +185,21 @@ private:
         {
             if (word.empty())
                 continue;
-            else if ("total" == word.at(0))
+            else if ("total" == word.at(0)) {
                 reaction_species_number = static_cast<int>(atoi(word[1].c_str()));
-            else if ("pairs" == word.at(0))
-            {
+            }
+            else if ("pairs" == word.at(0)) {
                 name.emplace_back(word[1]);
                 word.erase(word.begin(), word.begin() + 2);
-                while (word.size() > 0)
-                {
+                while (word.size() > 0) {
                     if ("reaction" == word.at(0))
                     {
-                        reaction_type_number.emplace_back(atoi(std::move(word[1]).c_str()));
+                        int nreact = atoi(std::move(word[1]).c_str());
+                        reaction_type_number.emplace_back(nreact);
                         word.erase(word.begin(), word.begin() + 2);
+                        for(int i = 0; i < nreact; ++i) 
+                            reaction_types.emplace_back(word[i]);
+                        word.erase(word.begin(), word.begin()+nreact);
                     }
                     else
                     {

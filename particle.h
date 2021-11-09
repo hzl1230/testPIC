@@ -4,6 +4,7 @@
 #include <vector>
 #include "utility.h"
 
+// ESPIC::Random ranf;
 class Particle {
   public:
     // constructors
@@ -40,12 +41,18 @@ class Particle {
     Real& vx() { return vel_[0]; }
     Real& vy() { return vel_[1]; }
     Real& vz() { return vel_[2]; }
+    Real& vxr() { return vel_r[0]; }
+    Real& vyr() { return vel_r[1]; }
+    Real& vzr() { return vel_r[2]; }
     const Real& x()  const { return pos_[0]; }
     const Real& y()  const { return pos_[1]; }
     const Real& z()  const { return pos_[2]; }
     const Real& vx() const { return vel_[0]; }
     const Real& vy() const { return vel_[1]; }
     const Real& vz() const { return vel_[2]; }
+    const Real& vxr() const { return vel_r[0]; }
+    const Real& vyr() const { return vel_r[1]; }
+    const Real& vzr() const { return vel_r[2]; }
 
     const Real vel_tot() { return sqrt(vel_[0]*vel_[0] 
                       + vel_[1]*vel_[1] + vel_[2]*vel_[2]); }
@@ -55,10 +62,12 @@ class Particle {
 
     Real* pos() { return pos_; }
     Real* vel() { return vel_; }
+    Real* ver() { return vel_r; }
 
   private:
     Real pos_[3];
     Real vel_[3];
+    Real vel_r[3];
     vector<Real> nu_;
 };
 
@@ -253,15 +262,15 @@ class Particles {
         std::shuffle(cluster.begin(), cluster.end(), g);
     }
 
-    void get_sub_particles(size_type n, Particles*& sub)
+    void get_sub_particles(size_type n, Particles& sub)
     {
         particles_shuffle();
-        if (sub->size() != 0) {
-            sub->cluster.clear();
-            sub->nparticles = 0;
+        if (sub.size() != 0) {
+            sub.cluster.clear();
+            sub.nparticles = 0;
         }   
-        std::copy(cluster.begin(), cluster.begin() + n, back_inserter(sub->cluster));
-        sub->nparticles += n;
+        std::copy(cluster.begin(), cluster.begin() + n, back_inserter(sub.cluster));
+        sub.nparticles += n;
     }
 
   private:
@@ -274,4 +283,18 @@ class Particles {
       if(scalar.size() != size()) scalar.resize(size());
     }
 };
+
+inline void RelativeVelocity(Particle& pt, Real vxb, Real vyb, Real vzb)
+{
+    pt.vxr() = pt.vx() - vxb;
+    pt.vyr() = pt.vy() - vyb;
+    pt.vzr() = pt.vz() - vzb;
+}
+
+inline Real get_energy(Real vx, Real vy, Real vz) 
+{
+    return 0.5*(vx*vx + vy*vy + vz*vz);
+}
+
+
 #endif

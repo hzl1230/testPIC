@@ -14,6 +14,8 @@
 #include <fstream>
 
 typedef double Real;
+typedef int Smallint;
+typedef int Bigint;
 using std::vector;
 using std::string;
 
@@ -101,5 +103,15 @@ inline Real Pcoll(Real nu, Real dt)
 {
     return 1 - exp(-nu*dt);
 } 
+
+inline Real findmax(vector<Real>::const_iterator beg, vector<Real>::const_iterator end)
+{
+    Real max = 0;
+    for(auto i = beg; i != end; ++i) 
+        if (max < *beg) max = *beg;
+
+    return max;
+    
+}
 
 #endif
