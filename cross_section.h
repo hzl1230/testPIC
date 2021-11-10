@@ -6,6 +6,8 @@
 
 
 typedef std::pair<std::string,class Reaction*> pair_name_react;
+extern Real kTe0;
+Real kTe0;
 class Reaction
 {
 public:
@@ -218,10 +220,15 @@ private:
                     }
                 }
             }
+            else if ("aid_param" == word.at(0)) {
+                kTe0 = (Real)atof(word[1].c_str());
+            }
+            else {
+                std::string cmd(word[0]);
+                espic_error(unknown_cmd_info(cmd, infile));
+            }
         }
     }
 };
-
-
 
 #endif

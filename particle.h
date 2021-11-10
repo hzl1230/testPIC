@@ -15,10 +15,16 @@ class Particle {
       nu_(0)
       { }
 
-    Particle(Real x, Real vx, Real y, Real vy, vector<Real> nu, Real z=0., Real vz=0.) :
+    Particle(Real x, Real vx, Real y, Real vy, Real z=0., Real vz=0.) :
       pos_ {x, y, z},
       vel_ {vx, vy, vz},
-      nu_(nu)
+      nu_(0)
+      { }
+
+    Particle(Real x, Real y, Real z) :
+      pos_ {x, y, z},
+      vel_ {0, 0, 0},
+      nu_(0)
       { }
 
     // copy constructor
@@ -54,11 +60,12 @@ class Particle {
     const Real& vyr() const { return vel_r[1]; }
     const Real& vzr() const { return vel_r[2]; }
 
-    const Real vel_tot() { return sqrt(vel_[0]*vel_[0] 
+    const Real vt() { return sqrt(vel_[0]*vel_[0] 
                       + vel_[1]*vel_[1] + vel_[2]*vel_[2]); }
     vector<Real>& nu() { return nu_; }
     const vector<Real>& nu() const { return nu_; }
     void update_nu(const vector<Real>& nu) { nu_ = nu; }
+    const Real energy() { return 0.5*(vel_r[0]*vel_r[0] + vel_r[1]*vel_r[1] + vel_r[2]*vel_r[2]); }
 
     Real* pos() { return pos_; }
     Real* vel() { return vel_; }
@@ -294,6 +301,14 @@ inline void RelativeVelocity(Particle& pt, Real vxb, Real vyb, Real vzb)
 inline Real get_energy(Real vx, Real vy, Real vz) 
 {
     return 0.5*(vx*vx + vy*vy + vz*vz);
+}
+
+inline Real RG01()
+{
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::uniform_real_distribution<Real> RDr(0.,1.);
+    return RDr(g);
 }
 
 

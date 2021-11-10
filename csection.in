@@ -1,3 +1,8 @@
-total 2
-pairs e reaction 3 ela exc ion dir e_Ar.dat
-pairs p reaction 2 iso back dir i_Ar.dat
+total 2                       ! spec num
+pairs e &                     ! name
+ reaction 3 ela exc ion &     ! type num, type name(ela exc ion iso back)
+ dir e_Ar.dat                 ! file_dir
+pairs p &
+ reaction 2 iso back &
+ dir i_Ar.dat
+aid_param  2.585              ! kTe0 need to calculate ionization energy distribution
