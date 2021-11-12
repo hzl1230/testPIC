@@ -46,16 +46,21 @@ public:
         RelativeVelocity(particles, vxb, vyb, vzb);
         Real numax = 0;
         // std::ofstream of("ion_E.dat",std::ofstream::app);
-        std::ofstream of("out/vel.dat");
+        std::ofstream ofe("out/vel_e.dat"), ofp("out/vel_p.dat");
         for (size_type ip = 0; ip < particles.size(); ++ip)
         {
             Particle& pt = particles[ip];
             vector<Real>& nu = pt.nu();
             if(!nu.empty()) nu.clear();
             Real energy = pt.rel_en(), nvt;
-            of << pt.vx() << " " << pt.vxr() << " "
-               << pt.vy() << " " << pt.vyr() << " "
-               << pt.vz() << " " << pt.vzr() <<endl;
+            if (specid == 0)
+                ofe << pt.vx() << " " << pt.vxr() << " "
+                << pt.vy() << " " << pt.vyr() << " "
+                << pt.vz() << " " << pt.vzr() <<endl;
+            else
+                ofp << pt.vx() << " " << pt.vxr() << " "
+                << pt.vy() << " " << pt.vyr() << " "
+                << pt.vz() << " " << pt.vzr() <<endl;
             vector<Real> info;
          
             info = reaction->en_cs(energy);
@@ -68,7 +73,8 @@ public:
             if(nutot > numax) numax = nutot;
         }
         // of << numax << " ";
-        of.close();
+        ofe.close();
+        ofp.close();
         return numax;
     }
 
@@ -89,7 +95,7 @@ public:
             cop.ParticleExcitatinCollision(threshold);
         else if ("ion" == type) {
             cop.ParticleIonizationCollision(threshold);
-            newpp = cop.ion_products();
+            newpp.emplace_back(std::move(cop.ion_products()));
         }
         else if ("iso" == type) 
             cop.ParticleIsotropicCollision();

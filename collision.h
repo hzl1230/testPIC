@@ -31,7 +31,7 @@ public:    // In class all velocity except for the Update part are relative velo
         wy = F1 * vy;
         wz = F1 * vz;
         
-        energy = get_energy(vx, vy, vz);
+        energy = fabs(get_energy(vx, vy, vz));
         vel = sqrt(2.0 * energy);
     }
 
@@ -75,8 +75,7 @@ public:    // In class all velocity except for the Update part are relative velo
         Particle newion = pt;
         UpdateParticleVelInfo(chi_ej, eta_ej, vel_ej, newelectron);
         EjectIonReaction(newion);
-        newpp.emplace_back(std::make_pair(std::move(newelectron), std::move(newion)));
-
+        particle_pair = std::make_pair(std::move(newelectron), std::move(newion));
         pt.lostenergy() += th;
     }
 
@@ -94,7 +93,7 @@ public:    // In class all velocity except for the Update part are relative velo
         UpdateParticleVelInfo();
     }
 
-    const CollPair& ion_products() { return newpp; }
+    const std::pair<Particle, Particle>& ion_products() { return particle_pair; }
 
 
 
@@ -106,7 +105,7 @@ private:
     Real chi, eta, theta, phi;
     Real wx, wy, wz;
     Real st, ct, sp, cp;
-    CollPair newpp;
+    std::pair<Particle, Particle> particle_pair;
     Real vel, energy;
     // std::vector<Real> velbuffer;
 
