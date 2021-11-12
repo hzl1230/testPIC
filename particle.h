@@ -12,32 +12,33 @@ class Particle {
     Particle() :
       pos_ {0, 0, 0},
       vel_ {0, 0, 0}, 
-      nu_(0)
+      nu_(0), lostenergy_(0)
       { }
 
     Particle(Real x, Real vx, Real y, Real vy, Real z=0., Real vz=0.) :
       pos_ {x, y, z},
       vel_ {vx, vy, vz},
-      nu_(0)
+      nu_(0), lostenergy_(0)
       { }
 
     Particle(Real x, Real y, Real z) :
       pos_ {x, y, z},
       vel_ {0, 0, 0},
-      nu_(0)
+      nu_(0), lostenergy_(0)
       { }
 
     // copy constructor
     Particle(const Particle& other) :
       pos_{other.pos_[0], other.pos_[1], other.pos_[2]},
       vel_{other.vel_[0], other.vel_[1], other.vel_[2]},
-      nu_(other.nu_)
+      nu_(other.nu_), lostenergy_(other.lostenergy_)
       { }
 // assignment operator
     Particle& operator=(const Particle& rhs) {
       pos_[0] = rhs.pos_[0]; pos_[1] = rhs.pos_[1]; pos_[2] = rhs.pos_[2];
       vel_[0] = rhs.vel_[0]; vel_[1] = rhs.vel_[1]; vel_[2] = rhs.vel_[2];
-      nu_ = rhs.nu_;
+      nu_ = rhs.nu_; 
+      lostenergy_ = rhs.lostenergy_;
       return *this;
     }
 
@@ -65,17 +66,22 @@ class Particle {
     vector<Real>& nu() { return nu_; }
     const vector<Real>& nu() const { return nu_; }
     void update_nu(const vector<Real>& nu) { nu_ = nu; }
-    const Real energy() { return 0.5*(vel_r[0]*vel_r[0] + vel_r[1]*vel_r[1] + vel_r[2]*vel_r[2]); }
+    const Real energy() { return 0.5*(vel_[0]*vel_[0] + vel_[1]*vel_[1] + vel_[2]*vel_[2]); }
+    const Real rel_en() { return 0.5*(vel_r[0]*vel_r[0] + vel_r[1]*vel_r[1] + vel_r[2]*vel_r[2]); }
+    Real& lostenergy() { return lostenergy_; }
 
     Real* pos() { return pos_; }
     Real* vel() { return vel_; }
     Real* ver() { return vel_r; }
+
+    
 
   private:
     Real pos_[3];
     Real vel_[3];
     Real vel_r[3];
     vector<Real> nu_;
+    Real lostenergy_;
 };
 
 class Particles {
@@ -127,6 +133,25 @@ class Particles {
     cluster(other.cluster) 
     { }
 
+    Particles(Particles&& temp)
+    : nparticles(temp.nparticles), 
+    cluster(temp.cluster)
+    {
+      temp.nparticles = 0;
+      temp.cluster.clear();
+      temp.scalar.clear();
+    }
+
+    Particles& operator=(Particles&& temp)
+    {
+      nparticles = temp.nparticles;
+      cluster = temp.cluster;
+      temp.nparticles = 0;
+      temp.cluster.clear();
+      temp.scalar.clear();
+      return *this;
+    }
+
     // desctructor
     ~Particles() { 
       nparticles = 0;
@@ -174,6 +199,7 @@ class Particles {
         vy2 = cluster[ip].vy() * cluster[ip].vy();
         vz2 = cluster[ip].vz() * cluster[ip].vz();
         scalar[ip] = 0.5 * (vx2 + vy2 + vz2);
+        // scalar[ip] += cluster[ip].lostenergy();
       }
       return scalar;
     }
@@ -296,6 +322,15 @@ inline void RelativeVelocity(Particle& pt, Real vxb, Real vyb, Real vzb)
     pt.vxr() = pt.vx() - vxb;
     pt.vyr() = pt.vy() - vyb;
     pt.vzr() = pt.vz() - vzb;
+}
+
+inline void RelativeVelocity(Particles& pts, Real vxb, Real vyb, Real vzb)
+{
+    for(size_t ip = 0; ip < pts.size(); ++ip) {
+      pts[ip].vxr() = pts[ip].vx() - vxb;
+      pts[ip].vyr() = pts[ip].vy() - vyb;
+      pts[ip].vzr() = pts[ip].vz() - vzb;
+    }
 }
 
 inline Real get_energy(Real vx, Real vy, Real vz) 

@@ -62,6 +62,10 @@ public:
     const std::vector<Real>& en_cs(Real en)
     {
         // Get cs_info through 1DLinearInterpoltationMethod
+        if(en == 0) { 
+            info ={0.,0.,0.};
+            return info;
+        } 
         Real deinv(1./de_);
         Real ei(en*deinv - 1) ;
         int elo = static_cast<int>(ei);

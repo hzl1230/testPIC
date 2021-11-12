@@ -11,8 +11,7 @@ using std::ofstream;
 
 const Real vth = sqrt(2.);
 const Real vthb = sqrt(2.*0.01/72820.7);
-const Real ndens_ = 2414323.50534664;
-const Real mass = 72820.7;
+
 const Real dt = 0.1;
 
 void InitParticle(Particles& pts, Reaction*& reaction, Real& nu_max) { 
@@ -40,7 +39,6 @@ void InitParticle(Particles& pts, Reaction*& reaction, Real& nu_max) {
 
 void ParticleCollision(
     const int type_id, 
-    const Real mass,
     Reaction*& re,
     Collisionpair& cop,
     CollPair& newpp)

@@ -3,22 +3,36 @@
 #include "particle.h"
 #include "utility.h"
 
+const Real bndens = 2414323.50534664;
+const Real bmass = 72820.7;
 class Species {
 public:
     Species(const std::string& nm, Real m, Real q, Real t, Real n)
     : name(nm), mass(m), charge(q), temp(t),
-    particles(new Particles())
+    particles(new Particles()), totenergy(0)
     { }
 
     Species(const Species& other)
     : name(other.name), mass(other.mass), 
-    charge(other), temp(other.temp),
-    particles(new Particles(*(other.particles)))
+    charge(other.charge), temp(other.temp),
+    particles(new Particles(*(other.particles))), 
+    totenergy(0)
     { }
+    
+    ~Species()
+    {
+        delete particles;
+    }
 
     void reserve_num_particles(Bigint n)
     { 
         particles->reserve(n);
+    }
+
+    void update_tot_energy()
+    {
+        const vector<Real>& energy = particles->get_particles_energy();
+        totenergy = std::accumulate(energy.cbegin(), energy.cend(), 0.);
     }
 
     std::string name;
@@ -26,7 +40,8 @@ public:
     Real charge;
     Real temp;
     Real ndens;
-    class Particles* particles; 
+    class Particles* particles;
+    Real totenergy; 
 };
 
 #endif

@@ -11,10 +11,10 @@ using namespace ESPIC;
 
 class Collisionpair {
 public:    // In class all velocity except for the Update part are relative velocity 
-    Collisionpair(Particle& particle, Real mass1, Real mass2, Real vtb)
+    Collisionpair(Particle& particle, Real mass1, Real mass2, Real vth1, Real vth2)
     : pt(particle), 
     vx(pt.vxr()), vy(pt.vyr()), vz(pt.vzr()),
-    vth(vtb),
+    vth(vth1), vtb(vth2), // inject(1) and background(2) thermo velocity
     F1(mass1/(mass1+mass2)), F2(mass2/(mass1+mass2))
     {
         if (vx == 0) { theta = 0.5 * ESPIC::PI; }
@@ -49,19 +49,19 @@ public:    // In class all velocity except for the Update part are relative velo
         chi = acos(1.0 - 2.0 * RG01());
         eta = ESPIC::PI2 * RG01();
         UpdateParticleVelInfo();
+        
+        pt.lostenergy() += th;
     }
 
     void ParticleIonizationCollision(Real th)
     {
         Real en_ej, en_sc;
         Real vel_ej, chi_ej, eta_ej;
-        // Real xej, yej, zej;
-        // Real vxej, vyej, vzej; 
-        // Real sc, cc, se, ce;
+        Real w = 10.3/kTe0;
 
-        energy = 0.5 * vel * vel;
+        // energy = 0.5 * vel * vel;
         energy = fabs(energy - th);
-        en_ej = 10.0 * tan(RG01() * atan(energy/20.));
+        en_ej = w * tan(RG01() * atan(0.5*energy/w));
         en_sc = fabs(energy - en_ej);
         vel = sqrt(2.0 * en_sc);
         vel_ej = sqrt(2.0 * en_ej);
@@ -70,11 +70,14 @@ public:    // In class all velocity except for the Update part are relative velo
         eta = ESPIC::PI2 * RG01();
         eta_ej = eta + ESPIC::PI;
 
+        UpdateParticleVelInfo();
         Particle newelectron = pt;
         Particle newion = pt;
         UpdateParticleVelInfo(chi_ej, eta_ej, vel_ej, newelectron);
         EjectIonReaction(newion);
         newpp.emplace_back(std::make_pair(std::move(newelectron), std::move(newion)));
+
+        pt.lostenergy() += th;
     }
 
     void ParticleIsotropicCollision()
@@ -98,7 +101,7 @@ public:    // In class all velocity except for the Update part are relative velo
 private:
     Particle& pt;
     Real vx, vy, vz;
-    const Real vth;
+    const Real vth, vtb;
     const Real F1, F2;
     Real chi, eta, theta, phi;
     Real wx, wy, wz;
@@ -112,12 +115,16 @@ void UpdateParticleVelInfo(Real chi_, Real eta_, Real vel_, Particle& particle)
 {
     Real sc(sin(chi_)), cc(cos(chi_));
     Real se(sin(eta_)), ce(cos(eta_));
+    // Real vxb, vyb, vzb;
+
     vx = vel_ * (ct * cc - st * sc * ce);
     vy = vel_ * (st * cp * cc + ct * cp * sc * ce - sp * sc * se);
     vz = vel_ * (st * sp * cc + ct * sp * sc * ce + cp * sc * se);
     particle.vx() = wx + F2*vx;
     particle.vy() = wy + F2*vy;
     particle.vz() = wz + F2*vz;
+    // VelBoltzDistr(vth, vxb, vyb, vzb);
+    // RelativeVelocity(particle, vxb, vyb, vzb);
 }
 
 void UpdateParticleVelInfo()
@@ -135,10 +142,12 @@ void UpdateParticleVelInfo()
 void EjectIonReaction(Particle& particle)
 {
     Real vx, vy, vz;
-    VelBoltzDistr(vth, vx, vy, vz);
+    VelBoltzDistr(vtb, vx, vy, vz);
     particle.vx() = vx; 
     particle.vy() = vy; 
     particle.vz() = vz;
+    // VelBoltzDistr(vtb, vxb, vyb, vzb);
+    // RelativeVelocity(particle, vxb, vyb, vzb);
 }
 
 };
