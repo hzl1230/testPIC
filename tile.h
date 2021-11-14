@@ -41,22 +41,23 @@ public:
         Particles& particles = *(species->particles);
         Reaction* & reaction = reaction_arr[reactid].second;
 
-        Real vxb, vyb, vzb;
-        VelBoltzDistr(background->vth, vxb, vyb, vzb);
-        RelativeVelocity(particles, vxb, vyb, vzb);
         Real numax = 0;
+    #ifdef DEBUG
         std::ofstream of;
         if (specid == 0) of.open("out/vel_e.dat");
         else of.open("out/vel_p.dat");
+    #endif
         // std::ofstream of("ion_E.dat",std::ofstream::app);
-        // std::ofstream ofe("out/vel_e.dat"), ofp("out/vel_p.dat");
+        
         for (size_type ip = 0; ip < particles.size(); ++ip)
         {
             Particle& pt = particles[ip];
+            pt.gen_relative_vel(background->vth);
+            
             vector<Real>& nu = pt.nu();
             if(!nu.empty()) nu.clear();
             Real energy = pt.rel_en(), nvt;
-            
+#ifdef DEBUG
             if (specid == 0) {
                 of << pt.vx() << " " << pt.vxr() << " "
                 << pt.vy() << " " << pt.vyr() << " "
@@ -67,6 +68,8 @@ public:
                 << pt.vy() << " " << pt.vyr() << " "
                 << pt.vz() << " " << pt.vzr() <<endl;
             }
+            of.close();
+#endif
             vector<Real> info;
          
             info = reaction->en_cs(energy);
@@ -78,8 +81,6 @@ public:
             for (auto& nuj: nu) nutot += nuj;
             if(nutot > numax) numax = nutot;
         }
-        // of << numax << " ";
-        of.close();
         return numax;
     }
 

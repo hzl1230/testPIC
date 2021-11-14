@@ -18,7 +18,7 @@ public:    // In class all velocity except for the Update part are relative velo
     F1(mass1/(mass1+mass2)), F2(mass2/(mass1+mass2))
     {
         if (vx == 0) { theta = 0.5 * ESPIC::PI; }
-        else { theta = atan2(sqrt(vx*vy+vz*vz), vx); }
+        else { theta = atan2(sqrt(vy*vy+vz*vz), vx); }
         if (vy == 0) { 
             if (vz > 0) phi = 0.5 * ESPIC::PI;
             else phi = -0.5 * ESPIC::PI;
@@ -69,14 +69,41 @@ public:    // In class all velocity except for the Update part are relative velo
         chi_ej = acos(sqrt(en_ej / energy));
         eta = ESPIC::PI2 * RG01();
         eta_ej = eta + ESPIC::PI;
-
+    #ifdef DEBUG
+        std::ofstream of("out/coll.dat", std::ofstream::app);
+        of << "Eng sc: " << en_sc << " "
+           << "Eng ej: " << en_ej << std::endl;
+        of << "chi sc: " << chi << " "
+           << "chi ej: " << chi_ej << std::endl;
+        of << "eta sc: " << eta << " "
+           << "eta ej: " << eta_ej << std::endl;
+        of << "theta: " << theta << " "
+           << "phi: " << phi << " "
+           << "F1: " << F1 << " "
+           << "F2: " << F2 << std::endl;
+        of << "vx: " << vx << " "
+           << "vy: " << vy << " "
+           << "vz: " << vz << std::endl;
+    #endif
         UpdateParticleVelInfo();
         Particle newelectron = pt;
         Particle newion = pt;
-        UpdateParticleVelInfo(chi_ej, eta_ej, vel_ej, newelectron);
+        EjectEletronReaction(chi_ej, eta_ej, vel_ej, newelectron);
         EjectIonReaction(newion);
+    #ifdef DEBUG
+        of << newelectron.vx() << " " 
+           << newelectron.vy() << " "  
+           << newelectron.vz() <<std::endl; 
+        of << newion.vx() << " " 
+           << newion.vy() << " "  
+           << newion.vz() <<std::endl; 
+        of << std::endl;
+        of.close();
+    #endif
         particle_pair = std::make_pair(std::move(newelectron), std::move(newion));
         pt.lostenergy() += th;
+
+        
     }
 
     void ParticleIsotropicCollision()
@@ -93,7 +120,7 @@ public:    // In class all velocity except for the Update part are relative velo
         UpdateParticleVelInfo();
     }
 
-    const std::pair<Particle, Particle>& ion_products() { return particle_pair; }
+    std::pair<Particle, Particle>& ion_products() { return particle_pair; }
 
 
 
@@ -110,7 +137,7 @@ private:
     // std::vector<Real> velbuffer;
 
 
-void UpdateParticleVelInfo(Real chi_, Real eta_, Real vel_, Particle& particle)
+void EjectEletronReaction(Real chi_, Real eta_, Real vel_, Particle& particle)
 {
     Real sc(sin(chi_)), cc(cos(chi_));
     Real se(sin(eta_)), ce(cos(eta_));

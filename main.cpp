@@ -6,15 +6,17 @@ ESPIC::Random ranf;
 
 int main(int argc, char **argv)
 {
-    size_type Np = 100000;
+    size_type Np = 10000;
     Real dt = 0.1, time = 0.0;
-    Real ntime = 1.;
+    Real ntime = 100.;
     if (argc > 1) ntime = (Real)atof(argv[1]);
     Tile* tile = new Tile(Np);
 
     Real massb = tile->background->mass;
     Real vtb = tile->background->vth;
     std::ofstream of("out/out.dat"), rof("out/particle_num.dat"), onu("out/nu.dat");
+    // std::ofstream ooof("out/coll.dat");
+    // ooof.close();
     // Reaction* & reaction = tile->reaction_arr[0].second;
     // Particles* & particles = tile->spec_arr[0]->particles;
     while(time < ntime) {
@@ -57,13 +59,15 @@ int main(int argc, char **argv)
                 }  
             }
             if(!newpp.empty()) { 
-                vector<Particle> electron, ion;
-                for(size_type ipair = 0; ipair < newpp.size(); ++ipair) {
-                    electron.emplace_back(newpp[ipair].first);
-                    ion.emplace_back(newpp[ipair].second);
+                // vector<Particle> electron, ion;
+                // for(size_type ipair = 0; ipair < newpp.size(); ++ipair) {
+                //     electron.emplace_back(newpp[ipair].first);
+                //     ion.emplace_back(newpp[ipair].second);
+                // }
+                for(size_type ipair = 0; ipair < newpp.size(); ++ipair){
+                    species->particles->append(newpp[ipair].first);
+                    tile->spec_arr[specid+1]->particles->append(newpp[ipair].second);
                 }
-                species->particles->append(electron);
-                tile->spec_arr[specid+1]->particles->append(ion);
                 newpp.clear();
                 newpp.shrink_to_fit();
             }

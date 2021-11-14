@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "utility.h"
+#include "espic_math.h"
 
 // ESPIC::Random ranf;
 class Particle {
@@ -39,6 +40,15 @@ class Particle {
       vel_[0] = rhs.vel_[0]; vel_[1] = rhs.vel_[1]; vel_[2] = rhs.vel_[2];
       nu_ = rhs.nu_; 
       return *this;
+    }
+
+    void gen_relative_vel(const Real vth)
+    {
+      Real vxb, vyb, vzb;
+      VelBoltzDistr(vth, vxb, vyb, vzb);
+      vel_r[0] = vel_[0] - vxb;
+      vel_r[1] = vel_[1] - vyb;
+      vel_r[2] = vel_[2] - vzb;
     }
 
     // Particle& operator=(Particle&& rhs) {
@@ -355,5 +365,7 @@ inline Real RG01()
     return RDr(g);
 }
 
+// inline Real GetVelDistr()
+// {}
 
 #endif
