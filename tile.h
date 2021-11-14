@@ -45,22 +45,28 @@ public:
         VelBoltzDistr(background->vth, vxb, vyb, vzb);
         RelativeVelocity(particles, vxb, vyb, vzb);
         Real numax = 0;
+        std::ofstream of;
+        if (specid == 0) of.open("out/vel_e.dat");
+        else of.open("out/vel_p.dat");
         // std::ofstream of("ion_E.dat",std::ofstream::app);
-        std::ofstream ofe("out/vel_e.dat"), ofp("out/vel_p.dat");
+        // std::ofstream ofe("out/vel_e.dat"), ofp("out/vel_p.dat");
         for (size_type ip = 0; ip < particles.size(); ++ip)
         {
             Particle& pt = particles[ip];
             vector<Real>& nu = pt.nu();
             if(!nu.empty()) nu.clear();
             Real energy = pt.rel_en(), nvt;
-            if (specid == 0)
-                ofe << pt.vx() << " " << pt.vxr() << " "
+            
+            if (specid == 0) {
+                of << pt.vx() << " " << pt.vxr() << " "
                 << pt.vy() << " " << pt.vyr() << " "
                 << pt.vz() << " " << pt.vzr() <<endl;
-            else
-                ofp << pt.vx() << " " << pt.vxr() << " "
+            }
+            else {
+                of << pt.vx() << " " << pt.vxr() << " "
                 << pt.vy() << " " << pt.vyr() << " "
                 << pt.vz() << " " << pt.vzr() <<endl;
+            }
             vector<Real> info;
          
             info = reaction->en_cs(energy);
@@ -73,8 +79,7 @@ public:
             if(nutot > numax) numax = nutot;
         }
         // of << numax << " ";
-        ofe.close();
-        ofp.close();
+        of.close();
         return numax;
     }
 
