@@ -1,6 +1,6 @@
 #ifndef _COLL_
 #define _COLL_
-#
+#define DEBUG_VEL
 #include "cross_section.h"
 #include "particle.h"
 #include "utility.h"
@@ -12,40 +12,53 @@ using namespace ESPIC;
 class Collisionpair {
 public:    // In class all velocity except for the Update part are relative velocity 
     Collisionpair(Particle& particle, Real mass1, Real mass2, Real vth1, Real vth2)
-    : pt(particle), 
-    vx(pt.vxr()), vy(pt.vyr()), vz(pt.vzr()),
+    : pt(particle), mass(mass1),
+    vxr(particle.vxr()), vyr(particle.vyr()), vzr(particle.vzr()),
     vth(vth1), vtb(vth2), // inject(1) and background(2) thermo velocity
     F1(mass1/(mass1+mass2)), F2(mass2/(mass1+mass2))
     {
-        if (vx == 0) { theta = 0.5 * ESPIC::PI; }
-        else { theta = atan2(sqrt(vy*vy+vz*vz), vx); }
-        if (vy == 0) { 
-            if (vz > 0) phi = 0.5 * ESPIC::PI;
+        if (vxr == 0) { theta = 0.5 * ESPIC::PI; }
+        else { theta = atan2(sqrt(vyr*vyr+vzr*vzr), vxr); }
+        if (vyr == 0) { 
+            if (vzr > 0) phi = 0.5 * ESPIC::PI;
             else phi = -0.5 * ESPIC::PI;
-        } else phi = atan2(vz, vy);
+        } else phi = atan2(vzr, vyr);
         st = sin(theta);
         ct = cos(theta);
         sp = sin(phi);
         cp = cos(phi);
-        wx = F1 * vx;
-        wy = F1 * vy;
-        wz = F1 * vz;
+
+        Real vxb(0), vyb(0), vzb(0);
+        if (mass1 > 100) 
+        {
+            vxb = pt.vx() - vxr;
+            vyb = pt.vy() - vyr;
+            vzb = pt.vz() - vzb;
+        } 
+        wx = F1 * (pt.vx() + vxb);
+        wy = F1 * (pt.vy() + vyb);
+        wz = F1 * (pt.vz() + vzb);
         
-        energy = fabs(get_energy(vx, vy, vz));
-        vel = sqrt(2.0 * energy);
+        energy = pt.rel_velsqr() * mass;
+        // vel = sqrt(2.0 * pt.rel_velsqr());
     }
 
     void ParticleElasticCollision() 
     { 
+        // std::ofstream of("out/ela.dat", std::ofstream::app);
+        // of << "Ori_Eng: "<< energy << std::endl;
+        vel = sqrt(2. * pt.velsqr());
         chi = acos(1.0 - 2.0*RG01());
         eta = ESPIC::PI2 * RG01();
         UpdateParticleVelInfo();
     }
 
     void ParticleExcitatinCollision(Real th) 
-    {
+    {   
+        // std::ofstream of("out/exc.dat", std::ofstream::app);
+        // of << "Ori_Eng: "<< energy << std::endl;
         energy = fabs(energy - th);
-        vel = sqrt(2.0 * energy);
+        vel = sqrt(2.0 * energy/mass);
         chi = acos(1.0 - 2.0 * RG01());
         eta = ESPIC::PI2 * RG01();
         UpdateParticleVelInfo();
@@ -58,19 +71,19 @@ public:    // In class all velocity except for the Update part are relative velo
         Real en_ej, en_sc;
         Real vel_ej, chi_ej, eta_ej;
         Real w = 10.3/kTe0;
-
-        // energy = 0.5 * vel * vel;
+        std::ofstream of("out/ion.dat", std::ofstream::app);
+        of << "Ori_Eng: "<< energy << " ";
         energy = fabs(energy - th);
+
         en_ej = w * tan(RG01() * atan(0.5*energy/w));
         en_sc = fabs(energy - en_ej);
-        vel = sqrt(2.0 * en_sc);
-        vel_ej = sqrt(2.0 * en_ej);
+        vel = sqrt(2.0 * en_sc/mass);
+        vel_ej = sqrt(2.0 * en_ej/mass);
         chi = acos(sqrt(en_sc / energy));
         chi_ej = acos(sqrt(en_ej / energy));
         eta = ESPIC::PI2 * RG01();
         eta_ej = eta + ESPIC::PI;
-    #ifdef DEBUG
-        std::ofstream of("out/coll.dat", std::ofstream::app);
+    #ifdef DEBUG_VEL
         of << "Eng sc: " << en_sc << " "
            << "Eng ej: " << en_ej << std::endl;
         of << "chi sc: " << chi << " "
@@ -81,16 +94,16 @@ public:    // In class all velocity except for the Update part are relative velo
            << "phi: " << phi << " "
            << "F1: " << F1 << " "
            << "F2: " << F2 << std::endl;
-        of << "vx: " << vx << " "
-           << "vy: " << vy << " "
-           << "vz: " << vz << std::endl;
+        of << "vx: " << vxr << " "
+           << "vy: " << vyr << " "
+           << "vz: " << vzr << std::endl;
     #endif
         UpdateParticleVelInfo();
-        Particle newelectron = pt;
-        Particle newion = pt;
+        Particle newelectron = Particle(pt.x(),pt.y(),pt.z());
+        Particle newion = Particle(pt.x(),pt.y(),pt.z());
         EjectEletronReaction(chi_ej, eta_ej, vel_ej, newelectron);
         EjectIonReaction(newion);
-    #ifdef DEBUG
+    #ifdef DEBUG_VEL
         of << newelectron.vx() << " " 
            << newelectron.vy() << " "  
            << newelectron.vz() <<std::endl; 
@@ -102,12 +115,11 @@ public:    // In class all velocity except for the Update part are relative velo
     #endif
         particle_pair = std::make_pair(std::move(newelectron), std::move(newion));
         pt.lostenergy() += th;
-
-        
     }
 
     void ParticleIsotropicCollision()
     {
+        vel = sqrt(2. * pt.rel_velsqr());
         chi = acos(1.0 - 2.0*RG01());
         eta = PI2 * RG01();
         UpdateParticleVelInfo();
@@ -115,6 +127,7 @@ public:    // In class all velocity except for the Update part are relative velo
 
     void ParticleBackwardCollision()
     {
+        vel = sqrt(2. * pt.rel_velsqr());
         chi = PI;
         eta = PI2 * RG01();
         UpdateParticleVelInfo();
@@ -126,7 +139,8 @@ public:    // In class all velocity except for the Update part are relative velo
 
 private:
     Particle& pt;
-    Real vx, vy, vz;
+    const Real mass;
+    Real vxr, vyr, vzr;
     const Real vth, vtb;
     const Real F1, F2;
     Real chi, eta, theta, phi;
@@ -141,28 +155,28 @@ void EjectEletronReaction(Real chi_, Real eta_, Real vel_, Particle& particle)
 {
     Real sc(sin(chi_)), cc(cos(chi_));
     Real se(sin(eta_)), ce(cos(eta_));
-    // Real vxb, vyb, vzb;
+    Real gx, gy, gz;
 
-    vx = vel_ * (ct * cc - st * sc * ce);
-    vy = vel_ * (st * cp * cc + ct * cp * sc * ce - sp * sc * se);
-    vz = vel_ * (st * sp * cc + ct * sp * sc * ce + cp * sc * se);
-    particle.vx() = wx + F2*vx;
-    particle.vy() = wy + F2*vy;
-    particle.vz() = wz + F2*vz;
-    // VelBoltzDistr(vth, vxb, vyb, vzb);
-    // RelativeVelocity(particle, vxb, vyb, vzb);
+    gx = vel_ * (ct * cc - st * sc * ce);
+    gy = vel_ * (st * cp * cc + ct * cp * sc * ce - sp * sc * se);
+    gz = vel_ * (st * sp * cc + ct * sp * sc * ce + cp * sc * se);
+    particle.vx() = wx + F2*gx;
+    particle.vy() = wy + F2*gy;
+    particle.vz() = wz + F2*gz;
 }
 
 void UpdateParticleVelInfo()
 {
     Real sc(sin(chi)), cc(cos(chi));
     Real se(sin(eta)), ce(cos(eta));
-    vx = vel * (ct * cc - st * sc * ce);
-    vy = vel * (st * cp * cc + ct * cp * sc * ce - sp * sc * se);
-    vz = vel * (st * sp * cc + ct * sp * sc * ce + cp * sc * se);
-    pt.vx() = wx + F2*vx;
-    pt.vy() = wy + F2*vy;
-    pt.vz() = wz + F2*vz;
+    Real gx, gy, gz;
+
+    gx = vel * (ct * cc - st * sc * ce);
+    gy = vel * (st * cp * cc + ct * cp * sc * ce - sp * sc * se);
+    gz = vel * (st * sp * cc + ct * sp * sc * ce + cp * sc * se);
+    pt.vx() = wx + F2*gx;
+    pt.vy() = wy + F2*gy;
+    pt.vz() = wz + F2*gz;
 }
 
 void EjectIonReaction(Particle& particle)

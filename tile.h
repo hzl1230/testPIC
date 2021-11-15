@@ -46,8 +46,8 @@ public:
         std::ofstream of;
         if (specid == 0) of.open("out/vel_e.dat");
         else of.open("out/vel_p.dat");
-    #endif
         // std::ofstream of("ion_E.dat",std::ofstream::app);
+    #endif
         
         for (size_type ip = 0; ip < particles.size(); ++ip)
         {
@@ -56,29 +56,16 @@ public:
             
             vector<Real>& nu = pt.nu();
             if(!nu.empty()) nu.clear();
-            Real energy = pt.rel_en(), nvt;
-#ifdef DEBUG
-            if (specid == 0) {
-                of << pt.vx() << " " << pt.vxr() << " "
-                << pt.vy() << " " << pt.vyr() << " "
-                << pt.vz() << " " << pt.vzr() <<endl;
-            }
-            else {
-                of << pt.vx() << " " << pt.vxr() << " "
-                << pt.vy() << " " << pt.vyr() << " "
-                << pt.vz() << " " << pt.vzr() <<endl;
-            }
-            of.close();
-#endif
+            Real energy = pt.rel_velsqr()*species->mass;
+            Real nvt = sqrt(2.*pt.rel_velsqr()) * background->ndens;
+            Real nutot = 0;
+
             vector<Real> info;
-         
             info = reaction->en_cs(energy);
             
-            Real nutot = 0;
-            nvt = sqrt(2.0 * energy)*background->ndens;
             auto fnu = [=](auto& x){ return x*nvt; };
-            transform(info.begin(), info.end(),back_inserter(nu),fnu);
-            for (auto& nuj: nu) nutot += nuj;
+            transform(info.begin(), info.end(), back_inserter(nu), fnu);
+            for (auto nuj: nu) nutot += nuj;
             if(nutot > numax) numax = nutot;
         }
         return numax;
@@ -143,7 +130,7 @@ private:
     void InitSpecies()
     {
         spec_arr.emplace_back(new Species("e", 1, -1, 1, 1));
-        spec_arr.emplace_back(new Species("p", bmass, 1, 0.04, 1));
+        spec_arr.emplace_back(new Species("p", bmass, 1, 0.01, 1));
         for (size_t ispec = 0; ispec < spec_arr.size(); ++ispec) {
             Species* & species = spec_arr[ispec];
             string name = species->name;

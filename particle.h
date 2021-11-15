@@ -25,19 +25,24 @@ class Particle {
     Particle(Real x, Real y, Real z) :
       pos_ {x, y, z},
       vel_ {0, 0, 0},
-      nu_(0), lostenergy_(0)
+      vel_r {0, 0, 0},
+      nu_(0), 
+      lostenergy_(0)
       { }
 
     // copy constructor
     Particle(const Particle& other) :
       pos_{other.pos_[0], other.pos_[1], other.pos_[2]},
       vel_{other.vel_[0], other.vel_[1], other.vel_[2]},
+      vel_r{other.vel_r[0], other.vel_r[1], other.vel_r[2]},
       nu_(other.nu_)
       { }
 // assignment operator
     Particle& operator=(const Particle& rhs) {
       pos_[0] = rhs.pos_[0]; pos_[1] = rhs.pos_[1]; pos_[2] = rhs.pos_[2];
       vel_[0] = rhs.vel_[0]; vel_[1] = rhs.vel_[1]; vel_[2] = rhs.vel_[2];
+      vel_r[0] = rhs.vel_r[0]; vel_r[1] = rhs.vel_r[1]; 
+      vel_r[2] = rhs.vel_r[2];
       nu_ = rhs.nu_; 
       return *this;
     }
@@ -85,8 +90,8 @@ class Particle {
     vector<Real>& nu() { return nu_; }
     const vector<Real>& nu() const { return nu_; }
     void update_nu(const vector<Real>& nu) { nu_ = nu; }
-    const Real energy() { return 0.5*(vel_[0]*vel_[0] + vel_[1]*vel_[1] + vel_[2]*vel_[2]); }
-    const Real rel_en() { return 0.5*(vel_r[0]*vel_r[0] + vel_r[1]*vel_r[1] + vel_r[2]*vel_r[2]); }
+    const Real velsqr() { return 0.5*(vel_[0]*vel_[0] + vel_[1]*vel_[1] + vel_[2]*vel_[2]); }
+    const Real rel_velsqr() { return 0.5*(vel_r[0]*vel_r[0] + vel_r[1]*vel_r[1] + vel_r[2]*vel_r[2]); }
     Real& lostenergy() { return lostenergy_; }
 
     Real* pos() { return pos_; }
@@ -209,7 +214,7 @@ class Particles {
       for (size_type ip = 0; ip < size(); ip++) scalar[ip] = cluster[ip].vz();
       return scalar;
     }
-    const std::vector<Real>& get_particles_energy() 
+    const std::vector<Real>& get_particles_velsqr() 
     {
       resize_scalar();
       for(size_type ip = 0; ip < size(); ip++) {
@@ -221,6 +226,25 @@ class Particles {
         // scalar[ip] += cluster[ip].lostenergy();
       }
       return scalar;
+    }
+
+    void get_particles_velsqr(Real& self, Real& lost) 
+    {
+      resize_scalar();
+      if (self > 0 || lost > 0.) { 
+        lost = 0.; self = 0.;
+      }
+      for(size_type ip = 0; ip < size(); ip++) {
+        Real vx2, vy2, vz2;
+        vx2 = cluster[ip].vx() * cluster[ip].vx();
+        vy2 = cluster[ip].vy() * cluster[ip].vy();
+        vz2 = cluster[ip].vz() * cluster[ip].vz();
+        scalar[ip] = 0.5 * (vx2 + vy2 + vz2);
+        self += scalar[ip];
+        lost += cluster[ip].lostenergy();
+        // scalar[ip] += cluster[ip].lostenergy();
+      }
+      
     }
 
     // reserve space for storing n particles

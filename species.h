@@ -31,8 +31,10 @@ public:
 
     void update_tot_energy()
     {
-        const vector<Real>& energy = particles->get_particles_energy();
-        totenergy = std::accumulate(energy.cbegin(), energy.cend(), 0.);
+        Real lost = 0;
+        particles->get_particles_velsqr(totenergy, lost);
+        // totenergy = std::accumulate(energy.cbegin(), energy.cend(), 0.);
+        totenergy = mass*totenergy + lost;
     }
 
     std::string name;
