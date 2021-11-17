@@ -14,7 +14,7 @@ public:    // In class all velocity except for the Update part are relative velo
     Collisionpair(Particle& particle, Real mass1, Real mass2, Real vth1, Real vth2)
     : pt(particle), mass(mass1),
     vxr(particle.vxr()), vyr(particle.vyr()), vzr(particle.vzr()),
-    vth(vth1), vtb(vth2), // inject(1) and background(2) thermo velocity
+    vth(vth1), vtb(vth2), // scatter(1) and background(2) thermo velocity
     F1(mass1/(mass1+mass2)), F2(mass2/(mass1+mass2))
     {
         if (vxr == 0) { theta = 0.5 * ESPIC::PI; }
@@ -43,8 +43,6 @@ public:    // In class all velocity except for the Update part are relative velo
 
     void ParticleElasticCollision() 
     { 
-        // std::ofstream of("out/ela.dat", std::ofstream::app);
-        // of << "Ori_Eng: "<< energy << std::endl;
         vel = sqrt(2. * pt.rel_velsqr());
         chi = acos(1.0 - 2.0*RG01());
         eta = ESPIC::PI2 * RG01();
@@ -53,8 +51,6 @@ public:    // In class all velocity except for the Update part are relative velo
 
     void ParticleExcitatinCollision(Real th) 
     {   
-        // std::ofstream of("out/exc.dat", std::ofstream::app);
-        // of << "Ori_Eng: "<< energy << std::endl;
         energy = fabs(energy - th);
         vel = sqrt(2.0 * energy/mass);
         chi = acos(1.0 - 2.0 * RG01());

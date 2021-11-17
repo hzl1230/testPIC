@@ -19,7 +19,6 @@ int main(int argc, char **argv)
     
 
     std::ofstream of("out/out.dat"), cof("out/coll.dat");
-    std::ofstream newpof("out/nele.dat");
     std::ofstream ooff("out/ion.dat");
     ooff.close();
     while(time < ntime) {
@@ -76,9 +75,6 @@ int main(int argc, char **argv)
                 for(size_type ipair = 0; ipair < newpp.size(); ++ipair){
                     species->particles->append(newpp[ipair].first);
                     tile->spec_arr[specid+1]->particles->append(newpp[ipair].second);
-                    newpof << newpp[ipair].first.vx() << " " 
-                           << newpp[ipair].first.vy() << " "
-                           << newpp[ipair].first.vz() << endl;
                 }
             }
             species->update_tot_energy();

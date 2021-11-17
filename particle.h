@@ -35,7 +35,7 @@ class Particle {
       pos_{other.pos_[0], other.pos_[1], other.pos_[2]},
       vel_{other.vel_[0], other.vel_[1], other.vel_[2]},
       vel_r{other.vel_r[0], other.vel_r[1], other.vel_r[2]},
-      nu_(other.nu_)
+      nu_(other.nu_), lostenergy_(other.lostenergy_)
       { }
 // assignment operator
     Particle& operator=(const Particle& rhs) {
@@ -43,7 +43,7 @@ class Particle {
       vel_[0] = rhs.vel_[0]; vel_[1] = rhs.vel_[1]; vel_[2] = rhs.vel_[2];
       vel_r[0] = rhs.vel_r[0]; vel_r[1] = rhs.vel_r[1]; 
       vel_r[2] = rhs.vel_r[2];
-      nu_ = rhs.nu_; 
+      nu_ = rhs.nu_; lostenergy_ = rhs.lostenergy_;
       return *this;
     }
 
