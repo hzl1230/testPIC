@@ -58,6 +58,7 @@ public:
             if(!nu.empty()) nu.clear();
             Real energy = pt.rel_velsqr()*species->mass;
             Real nvt = sqrt(2.*pt.rel_velsqr()) * background->ndens;
+            // pt.lostenergy() = 0;
             Real nutot = 0;
 
             vector<Real> info;

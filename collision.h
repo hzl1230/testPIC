@@ -28,13 +28,11 @@ public:    // In class all velocity except for the Update part are relative velo
         sp = sin(phi);
         cp = cos(phi);
 
-        Real vxb(0), vyb(0), vzb(0);
-        if (mass1 > 100) 
-        {
-            vxb = pt.vx() - vxr;
-            vyb = pt.vy() - vyr;
-            vzb = pt.vz() - vzb;
-        } 
+        Real vxb, vyb, vzb;
+        vxb = pt.vx() - vxr;
+        vyb = pt.vy() - vyr;
+        vzb = pt.vz() - vzr;
+        
         wx = F1 * (pt.vx() + vxb);
         wy = F1 * (pt.vy() + vyb);
         wz = F1 * (pt.vz() + vzb);
@@ -47,7 +45,7 @@ public:    // In class all velocity except for the Update part are relative velo
     { 
         // std::ofstream of("out/ela.dat", std::ofstream::app);
         // of << "Ori_Eng: "<< energy << std::endl;
-        vel = sqrt(2. * pt.velsqr());
+        vel = sqrt(2. * pt.rel_velsqr());
         chi = acos(1.0 - 2.0*RG01());
         eta = ESPIC::PI2 * RG01();
         UpdateParticleVelInfo();
@@ -104,6 +102,9 @@ public:    // In class all velocity except for the Update part are relative velo
         EjectEletronReaction(chi_ej, eta_ej, vel_ej, newelectron);
         EjectIonReaction(newion);
     #ifdef DEBUG_VEL
+        of << pt.vx() << " "
+           << pt.vy() << " "
+           << pt.vz() <<std::endl;
         of << newelectron.vx() << " " 
            << newelectron.vy() << " "  
            << newelectron.vz() <<std::endl; 

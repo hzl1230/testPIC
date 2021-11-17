@@ -231,9 +231,8 @@ class Particles {
     void get_particles_velsqr(Real& self, Real& lost) 
     {
       resize_scalar();
-      if (self > 0 || lost > 0.) { 
-        lost = 0.; self = 0.;
-      }
+      lost = 0.; self = 0.;
+      
       for(size_type ip = 0; ip < size(); ip++) {
         Real vx2, vy2, vz2;
         vx2 = cluster[ip].vx() * cluster[ip].vx();
@@ -242,6 +241,7 @@ class Particles {
         scalar[ip] = 0.5 * (vx2 + vy2 + vz2);
         self += scalar[ip];
         lost += cluster[ip].lostenergy();
+        // cluster[ip].lostenergy() = 0;
         // scalar[ip] += cluster[ip].lostenergy();
       }
       

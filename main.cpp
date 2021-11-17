@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     
 
     std::ofstream of("out/out.dat"), cof("out/coll.dat");
-    std::ofstream enf("out/en.dat"), newpof("out/nele.dat");
+    std::ofstream newpof("out/nele.dat");
     std::ofstream ooff("out/ion.dat");
     ooff.close();
     while(time < ntime) {
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
                             else ++ion;}
                         ori_en = pt.velsqr() * species->mass;
                         tile->ParticleCollision(itype, reaction, collpair, newpp);
-                        aft_en = pt.velsqr() * species->mass;
+                        aft_en = pt.velsqr() * species->mass + pt.lostenergy();
 
                         cof << itype << " " << "Ori: " << ori_en << " "
                              << "Aft: " << aft_en << endl;
@@ -80,8 +80,6 @@ int main(int argc, char **argv)
                            << newpp[ipair].first.vy() << " "
                            << newpp[ipair].first.vz() << endl;
                 }
-                newpp.clear();
-                newpp.shrink_to_fit();
             }
             species->update_tot_energy();
             of << species->particles->size() << " ";
@@ -91,13 +89,13 @@ int main(int argc, char **argv)
             of << species->totenergy << " ";
             ten += species->totenergy;
         }
+        cof << endl;
         of << endl;
-        enf << ten << endl;
+        
         time += dt;
     }
     of.close();
     cof.close();
-    enf.clear();
     delete tile;
     return 0;
 }
