@@ -58,7 +58,7 @@ public:
             if(!nu.empty()) nu.clear();
             Real energy = pt.rel_velsqr()*species->mass;
             Real nvt = sqrt(2.*pt.rel_velsqr()) * background->ndens;
-            // pt.lostenergy() = 0;
+            
             Real nutot = 0;
 
             vector<Real> info;
@@ -131,7 +131,7 @@ private:
     void InitSpecies()
     {
         spec_arr.emplace_back(new Species("e", 1, -1, 1, 1));
-        spec_arr.emplace_back(new Species("p", bmass, 1, 0.01, 1));
+        spec_arr.emplace_back(new Species("p", bmass, 1, 0.05, 1));
         for (size_t ispec = 0; ispec < spec_arr.size(); ++ispec) {
             Species* & species = spec_arr[ispec];
             string name = species->name;
