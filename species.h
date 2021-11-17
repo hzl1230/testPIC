@@ -35,7 +35,7 @@ public:
         for (size_t ip = 0; ip < particles->size(); ++ip)
         {
             Particle& pt = (*particles)[ip];
-            totenergy += get_energy(pt.vx(), pt.vy(), pt.vz())*mass;
+            totenergy += pt.velsqr()*mass;
             totenergy += pt.lostenergy();
         }
     }
