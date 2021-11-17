@@ -1,6 +1,6 @@
 #ifndef _COLL_
 #define _COLL_
-#define DEBUG_VEL
+// #define DEBUG_VEL
 #include "cross_section.h"
 #include "particle.h"
 #include "utility.h"
@@ -81,6 +81,7 @@ public:    // In class all velocity except for the Update part are relative velo
         chi_ej = acos(sqrt(en_ej / energy));
         eta = ESPIC::PI2 * RG01();
         eta_ej = eta + ESPIC::PI;
+        pt.lostenergy() += th;
     #ifdef DEBUG_VEL
         of << "Eng sc: " << en_sc << " "
            << "Eng ej: " << en_ej << std::endl;
@@ -115,7 +116,7 @@ public:    // In class all velocity except for the Update part are relative velo
         of.close();
     #endif
         particle_pair = std::make_pair(std::move(newelectron), std::move(newion));
-        pt.lostenergy() += th;
+        
     }
 
     void ParticleIsotropicCollision()

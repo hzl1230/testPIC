@@ -31,10 +31,13 @@ public:
 
     void update_tot_energy()
     {
-        Real lost = 0;
-        particles->get_particles_velsqr(totenergy, lost);
-        // totenergy = std::accumulate(energy.cbegin(), energy.cend(), 0.);
-        totenergy = mass*totenergy + lost;
+        totenergy = 0;
+        for (size_t ip = 0; ip < particles->size(); ++ip)
+        {
+            Particle& pt = (*particles)[ip];
+            totenergy += get_energy(pt.vx(), pt.vy(), pt.vz())*mass;
+            totenergy += pt.lostenergy();
+        }
     }
 
     std::string name;
