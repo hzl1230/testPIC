@@ -52,7 +52,7 @@ public:    // In class all velocity except for the Update part are relative velo
     void ParticleExcitatinCollision(Real th) 
     {   
         energy = fabs(energy - th);
-        vel = sqrt(2.0 * energy/mass);
+        vel = sqrt(2.0 * energy / mass);
         chi = acos(1.0 - 2.0 * RG01());
         eta = ESPIC::PI2 * RG01();
         UpdateParticleVelInfo();
@@ -69,15 +69,14 @@ public:    // In class all velocity except for the Update part are relative velo
         of << "Ori_Eng: "<< energy << " ";
         energy = fabs(energy - th);
 
-        en_ej = w * tan(RG01() * atan(0.5*energy/w));
+        en_ej = w * tan(RG01() * atan(0.5*energy / w));
         en_sc = fabs(energy - en_ej);
-        vel = sqrt(2.0 * en_sc/mass);
-        vel_ej = sqrt(2.0 * en_ej/mass);
+        vel = sqrt(2.0 * en_sc / mass);
+        vel_ej = sqrt(2.0 * en_ej / mass);
         chi = acos(sqrt(en_sc / energy));
         chi_ej = acos(sqrt(en_ej / energy));
         eta = ESPIC::PI2 * RG01();
         eta_ej = eta + ESPIC::PI;
-        pt.lostenergy() += th;
     #ifdef DEBUG_VEL
         of << "Eng sc: " << en_sc << " "
            << "Eng ej: " << en_ej << std::endl;
@@ -94,6 +93,7 @@ public:    // In class all velocity except for the Update part are relative velo
            << "vz: " << vzr << std::endl;
     #endif
         UpdateParticleVelInfo();
+        pt.lostenergy() += th;
         Particle newelectron = Particle(pt.x(),pt.y(),pt.z());
         Particle newion = Particle(pt.x(),pt.y(),pt.z());
         EjectEletronReaction(chi_ej, eta_ej, vel_ej, newelectron);

@@ -10,7 +10,7 @@ int main(int argc, char **argv)
 {
     size_type Np = 10000;
     Real dt = 0.1, time = 0.0;
-    Real ntime = 10.;
+    Real ntime = 20.;
     if (argc > 1) ntime = (Real)atof(argv[1]);
     Tile* tile = new Tile(Np);
 
@@ -63,9 +63,7 @@ int main(int argc, char **argv)
                         tile->ParticleCollision(itype, reaction, collpair, newpp);
                         aft_en = pt.velsqr() * species->mass + pt.lostenergy();
 
-                        cof << itype << " " << "Ori: " << ori_en << " "
-                             << "Aft: " << aft_en << endl;
-
+                        cof << ori_en << " " << aft_en << endl;
                         coll++; break;
                     }
                     ++itype;
